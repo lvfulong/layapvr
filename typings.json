@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "yargs": "registry:npm/yargs#5.0.0+20160907000723"
+  }
+}
