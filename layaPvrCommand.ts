@@ -89,16 +89,19 @@ exports.handler = async function (argv) {
   let files = fs.readdirSync(inputDir);
   for (let file of files) {
     let inputTexturePath = path.join(inputDir, file);
-    let outputTexturePath = path.join(outputDir, path.parse(file).name + '.pvr');
-
+    let outputTexturePath = path.join(outputDir, path.parse(file).name + '.pvr'); 
+    console.log('处理文件' + inputTexturePath + ' 中 ... ');
+    if (fs.existsSync(outputTexturePath)){
+      fs.unlinkSync(outputTexturePath);
+    }
     let cmd = "TexturePacker ";
     cmd += "\"" + inputTexturePath + "\"";
     cmd += " --sheet ";
     cmd += "\"" + outputTexturePath + "\"";
     cmd += " --texture-format pvr3 ";
-    cmd += " --format xml";
+    cmd += " --format phaser";
     cmd += " --data ";
-    let outputDataPath = path.join(outputDir, path.parse(file).name + '.xml');
+    let outputDataPath = path.join(outputDir, path.parse(file).name + '.json');
     cmd += "\"" + outputDataPath + "\"";
     cmd += " --size-constraints POT ";
     cmd += " --alpha-handling PremultiplyAlpha ";
@@ -133,15 +136,16 @@ exports.handler = async function (argv) {
     cmd = "..\\tools\\win\\PVRTool.exe ";
     cmd += "\"" + outputTexturePath + "\" ";
     cmd += "\"" + path.join(outputDir, path.parse(file).name) + "\" ";
-    let x = 5;
-    let y = 5;
-    let width = 20;
-    let height = 20;
-    cmd += "\"" + x + "\" ";
-    cmd += "\"" + y + "\" ";
-    cmd += "\"" + width + "\" ";
-    cmd += "\"" + height + "\" ";
+
+    var dataJson = fs.readFileSync(outputDataPath, "utf8");
+    let frame = JSON.parse(dataJson).textures[0].frames[0].frame;
+
+    cmd += "\"" + frame.x + "\" ";
+    cmd += "\"" + frame.y + "\" ";
+    cmd += "\"" + frame.w + "\" ";
+    cmd += "\"" + frame.h + "\" ";
     child_process.execSync(cmd); 
+    fs.unlinkSync(outputDataPath);
   }
 }
 function isPVRTC(format: string): boolean {
