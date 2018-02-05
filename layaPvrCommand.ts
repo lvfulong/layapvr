@@ -90,7 +90,7 @@ exports.handler = async function (argv) {
   for (let file of files) {
     let inputTexturePath = path.join(inputDir, file);
     let outputTexturePath = path.join(outputDir, path.parse(file).name + '.pvr'); 
-    console.log('处理文件' + inputTexturePath + ' 中 ... ');
+    console.log('处理文件 ' + inputTexturePath + ' 中 ... ');
     if (fs.existsSync(outputTexturePath)){
       fs.unlinkSync(outputTexturePath);
     }
@@ -98,7 +98,7 @@ exports.handler = async function (argv) {
     cmd += "\"" + inputTexturePath + "\"";
     cmd += " --sheet ";
     cmd += "\"" + outputTexturePath + "\"";
-    cmd += " --texture-format pvr3 ";
+    cmd += " --texture-format pvr3 --trim-mode None";
     cmd += " --format phaser";
     cmd += " --data ";
     let outputDataPath = path.join(outputDir, path.parse(file).name + '.json');
