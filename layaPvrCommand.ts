@@ -54,7 +54,7 @@ export var builder = {
   },
   pvrquality:
   {
-    choices: ['verylow', 'low', 'normal', 'high','best'],
+    choices: ['very-low', 'low', 'normal', 'high','best'],
     required: false,
     requiresArg: true,
     description: '同TexturePacker --pvr-quality,可选'
