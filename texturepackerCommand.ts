@@ -88,6 +88,11 @@ exports.handler = async function (argv) {
     return;
   }
 
+  if (isNaN(argv.extrude)) {
+    console.log('错误: 参数 --extrude 要求位数字类型');
+    return;
+  }
+
   //TODO 递归目录
   let files = fs.readdirSync(inputDir);
   for (let file of files) {
