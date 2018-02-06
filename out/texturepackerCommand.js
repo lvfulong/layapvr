@@ -85,6 +85,10 @@ exports.handler = function (argv) {
             console.log('当前只支持Windows平台');
             return;
         }
+        if (isNaN(argv.extrude)) {
+            console.log('错误: 参数 --extrude 要求位数字类型');
+            return;
+        }
         let files = fs.readdirSync(inputDir);
         for (let file of files) {
             let inputTexturePath = path.join(inputDir, file);
