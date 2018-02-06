@@ -13,7 +13,7 @@ const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
 const assert = require('assert');
-exports.command = 'layapvr';
+exports.command = 'texturepacker';
 exports.describe = 'laya纹理压缩工具';
 exports.builder = {
     inputdir: {
