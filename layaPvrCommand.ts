@@ -94,56 +94,56 @@ exports.handler = async function (argv) {
     if (fs.existsSync(outputTexturePath)){
       fs.unlinkSync(outputTexturePath);
     }
-    let cmd = "TexturePacker ";
-    cmd += "\"" + inputTexturePath + "\"";
-    cmd += " --sheet ";
-    cmd += "\"" + outputTexturePath + "\"";
-    cmd += " --texture-format pvr3 --trim-mode None";
-    cmd += " --format phaser";
-    cmd += " --data ";
+    let cmd = 'TexturePacker';
+    cmd += ' ' + inputTexturePath + ' ';
+    cmd += ' --sheet ';
+    cmd += ' ' + outputTexturePath + ' ';
+    cmd += ' --texture-format pvr3 --trim-mode None';
+    cmd += ' --format phaser';
+    cmd += ' --data ';
     let outputDataPath = path.join(outputDir, path.parse(file).name + '.json');
-    cmd += "\"" + outputDataPath + "\"";
-    cmd += " --size-constraints POT ";
-    cmd += " --alpha-handling PremultiplyAlpha ";
-    cmd += " --opt ";
-    cmd += "\"" + argv.format + "\"";
+    cmd += ' ' + outputDataPath + ' ';
+    cmd += ' --size-constraints POT ';
+    cmd += ' --alpha-handling PremultiplyAlpha ';
+    cmd += ' --opt ';
+    cmd += ' ' + argv.format + ' ';
     //格式为PVR，不是ETC，强制为方的
     if (isPVRTC(argv.format)) {
-      cmd += " --force-squared ";
+      cmd += ' --force-squared ';
     }
     if (argv.extrude) {
-      cmd += " --extrude ";
-      cmd += "\"" + argv.extrude + "\"";
+      cmd += ' --extrude ';
+      cmd += ' ' + argv.extrude + ' ';
     }
     if (argv.etc1quality) {
-      cmd += " --etc1-quality ";
-      cmd += "\"" + argv.etc1quality + "\"";
+      cmd += ' --etc1-quality ';
+      cmd += ' ' + argv.etc1quality + ' ';
     }
     if (argv.etc2quality) {
-      cmd += " --etc2-quality ";
-      cmd += "\"" + argv.etc2quality + "\"";
+      cmd += ' --etc2-quality ';
+      cmd += ' ' + argv.etc2quality + ' ';
     }
     if (argv.pvrquality) {
-      cmd += " --pvr-quality ";
-      cmd += "\"" + argv.pvrquality + "\"";
+      cmd += ' --pvr-quality ';
+      cmd += ' ' + argv.pvrquality + ' ';
     }
     if (argv.dithertype) {
-      cmd += " --dither-type ";
-      cmd += "\"" + argv.dithertype + "\"";
+      cmd += ' --dither-type ';
+      cmd += ' ' + argv.dithertype + ' ';
     }
     child_process.execSync(cmd); 
     
-    cmd = "..\\tools\\win\\PVRTool.exe ";
-    cmd += "\"" + outputTexturePath + "\" ";
-    cmd += "\"" + path.join(outputDir, path.parse(file).name) + "\" ";
+    cmd = path.join(__dirname, '../tools/win/PVRTool.exe');
+    cmd += ' ' + outputTexturePath + ' ';
+    cmd += ' ' + path.join(outputDir, path.parse(file).name) + ' ';
 
-    var dataJson = fs.readFileSync(outputDataPath, "utf8");
+    var dataJson = fs.readFileSync(outputDataPath, 'utf8');
     let frame = JSON.parse(dataJson).textures[0].frames[0].frame;
 
-    cmd += "\"" + frame.x + "\" ";
-    cmd += "\"" + frame.y + "\" ";
-    cmd += "\"" + frame.w + "\" ";
-    cmd += "\"" + frame.h + "\" ";
+    cmd += ' ' + frame.x + ' ';
+    cmd += ' ' + frame.y + ' ';
+    cmd += ' ' + frame.w + ' ';
+    cmd += ' ' + frame.h + ' ';
     child_process.execSync(cmd); 
     fs.unlinkSync(outputDataPath);
   }
