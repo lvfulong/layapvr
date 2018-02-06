@@ -13,7 +13,7 @@ if (process.argv.length > 2 && process.argv[2] !== 'texturepacker'){
   console.log('错误： 命令 ' + process.argv[2] + ' 不存在，请重新输入');
 }
 require('yargs')
-  .command(require('./layaPvrCommand'))
+  .command(require('./texturepackerCommand'))
   .locale('zh_CN')
   .help()
   .argv
