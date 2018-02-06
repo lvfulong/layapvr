@@ -1,0 +1,25 @@
+{
+  "name": "layapvr",
+  "version": "1.0.0",
+  "description": "\"# layapvr\"",
+  "main": "./out/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lvfulong/layapvr.git"
+  },
+  "keywords": [
+    "laya"
+  ],
+  "author": "lv",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lvfulong/layapvr/issues"
+  },
+  "homepage": "https://github.com/lvfulong/layapvr#readme",
+  "dependencies": {
+    "yargs": "^11.0.0"
+  }
+}
