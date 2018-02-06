@@ -1,9 +1,9 @@
 {
   "name": "layapvr",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "\"# layapvr\"",
   "main": "./out/main.js",
-    "bin": {
+  "bin": {
     "layapvr": "./out/main.js"
   },
   "scripts": {
