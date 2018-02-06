@@ -1,4 +1,4 @@
-#layapvr
+# layapvr
 ## 1.环境配置
 安装TexturePackers命令行工具，配置好环境变量  
 npm install -g layapvr
