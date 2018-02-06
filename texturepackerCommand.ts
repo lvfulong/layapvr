@@ -3,6 +3,8 @@ const path = require('path');
 const child_process = require('child_process');
 const os = require('os');
 const assert = require('assert');
+const imageType = require('image-type');
+const sizeOf = require('image-size');
 
 exports.command = 'texturepacker'
 exports.describe = 'laya纹理压缩工具'
@@ -36,6 +38,7 @@ export var builder = {
   {
     required: false,
     requiresArg: true,
+    type: 'number',
     description: '同TexturePacker --extrude'
   },
   etc1quality:
@@ -94,6 +97,13 @@ exports.handler = async function (argv) {
     if (fs.existsSync(outputTexturePath)){
       fs.unlinkSync(outputTexturePath);
     }
+    
+    let inputTextureBuffer = fs.readFileSync(inputTexturePath);
+    let type = imageType(inputTextureBuffer);
+    if (type.ext !== 'png' && type.ext !== 'jpg') {
+      console.log('警告：文件 ' + inputTexturePath + ' 文件类型不支持！');
+      continue;
+    }
     let cmd = 'TexturePacker';
     cmd += ' ' + inputTexturePath + ' ';
     cmd += ' --sheet ';
@@ -111,10 +121,24 @@ exports.handler = async function (argv) {
     if (isPVRTC(argv.format)) {
       cmd += ' --force-squared ';
     }
-    if (argv.extrude) {
-      cmd += ' --extrude ';
-      cmd += ' ' + argv.extrude + ' ';
+    let extrude:number = argv.extrude ? argv.extrude : 1;
+    let dimensions = sizeOf(inputTextureBuffer);
+    let potWidth = nextPOT(dimensions.width);
+    let potHeight = nextPOT(dimensions.height);
+    let acturalTexWidth = potWidth;
+    let acturalTexHeight = potHeight;
+    if (isPVRTC(argv.format)) {
+      acturalTexHeight = acturalTexWidth = Math.max(potWidth, potHeight);
     }
+    let maxExtrudeAllowed = Math.min(acturalTexWidth - dimensions.width, acturalTexHeight - dimensions.height);
+
+    cmd += ' --extrude ';
+    cmd += ' ' + maxExtrudeAllowed + ' ';
+
+    if (maxExtrudeAllowed < extrude) {
+      console.log('警告：为了节省显存，文件 ' + inputTexturePath + ' extrude 缩小到 ' + maxExtrudeAllowed);
+    }
+
     if (argv.etc1quality) {
       cmd += ' --etc1-quality ';
       cmd += ' ' + argv.etc1quality + ' ';
@@ -158,4 +182,14 @@ function getAbsPath(dir: string): string {
   if (path.isAbsolute(dir))
     return dir;
   return path.join(process.cwd(), dir);
+}
+function nextPOT(x: number): number {
+  x--;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  x++;
+  return x;
 }

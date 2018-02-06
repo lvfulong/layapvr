@@ -23,6 +23,8 @@
   },
   "homepage": "https://github.com/lvfulong/layapvr#readme",
   "dependencies": {
+    "image-size": "^0.6.2",
+    "image-type": "^3.0.0",
     "yargs": "^11.0.0"
   },
   "devDependencies": {}
