@@ -10,21 +10,19 @@ exports.command = 'texturepacker'
 exports.describe = 'laya纹理压缩工具'
 
 export var builder = {
-  inputdir:
+  input:
   {
     alias: 'i',
-    default: '.',
-    required: false,
+    required: true,
     requiresArg: true,
-    description: '输入目录,可选,默认当前目录'
+    description: '输入文件,必选'
   },
-  outputdir:
+  output:
   {
     alias: 'o',
-    default: '.',
-    required: false,
+    required: true,
     requiresArg: true,
-    description: '输出目录,可选,默认当前目录'
+    description: '输出文件,必选'
   },
   format:
   {
@@ -57,14 +55,14 @@ export var builder = {
   },
   pvrquality:
   {
-    choices: ['very-low', 'low', 'normal', 'high','best'],
+    choices: ['very-low', 'low', 'normal', 'high', 'best'],
     required: false,
     requiresArg: true,
     description: '同TexturePacker --pvr-quality,可选'
   },
   dithertype:
   {
-    choices: ['NearestNeighbour', 'Linear', 'FloydSteinberg', 'FloydSteinbergAlpha','Atkinson','AtkinsonAlpha'],
+    choices: ['NearestNeighbour', 'Linear', 'FloydSteinberg', 'FloydSteinbergAlpha', 'Atkinson', 'AtkinsonAlpha'],
     required: false,
     requiresArg: true,
     description: '同TexturePacker --dither-type,可选'
@@ -72,15 +70,10 @@ export var builder = {
 }
 
 exports.handler = async function (argv) {
-  let inputDir = getAbsPath(argv.inputdir);
-  if (!fs.existsSync(inputDir)) {
-    console.log('错误! 找不到输入目录 ' + inputDir);
+  let inputTexturePath = getAbsPath(argv.input);
+  if (!fs.existsSync(inputTexturePath)) {
+    console.log('错误! 找不到输入文件 ' + inputTexturePath);
     return;
-  }
-
-  let outputDir = getAbsPath(argv.outputdir);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
   }
 
   if (os.platform() !== 'win32') {
@@ -93,89 +86,92 @@ exports.handler = async function (argv) {
     return;
   }
 
-  //TODO 递归目录
-  let files = fs.readdirSync(inputDir);
-  for (let file of files) {
-    let inputTexturePath = path.join(inputDir, file);
-    let outputTexturePath = path.join(outputDir, path.parse(file).name + '.pvr'); 
-    console.log('处理文件 ' + inputTexturePath + ' 中 ... ');
-    if (fs.existsSync(outputTexturePath)){
-      fs.unlinkSync(outputTexturePath);
-    }
-    
-    let inputTextureBuffer = fs.readFileSync(inputTexturePath);
-    let type = imageType(inputTextureBuffer);
-    if (type.ext !== 'png' && type.ext !== 'jpg') {
-      console.log('警告：文件 ' + inputTexturePath + ' 文件类型不支持！');
-      continue;
-    }
-    let cmd = 'TexturePacker';
-    cmd += ' ' + inputTexturePath + ' ';
-    cmd += ' --sheet ';
-    cmd += ' ' + outputTexturePath + ' ';
-    cmd += ' --texture-format pvr3 --trim-mode None';
-    cmd += ' --format phaser';
-    cmd += ' --data ';
-    let outputDataPath = path.join(outputDir, path.parse(file).name + '.json');
-    cmd += ' ' + outputDataPath + ' ';
-    cmd += ' --size-constraints POT ';
-    cmd += ' --alpha-handling PremultiplyAlpha ';
-    cmd += ' --opt ';
-    cmd += ' ' + argv.format + ' ';
-    //格式为PVR，不是ETC，强制为方的
-    if (isPVRTC(argv.format)) {
-      cmd += ' --force-squared ';
-    }
-    let extrude:number = argv.extrude ? argv.extrude : 1;
-    let dimensions = sizeOf(inputTextureBuffer);
-    let potWidth = nextPOT(dimensions.width);
-    let potHeight = nextPOT(dimensions.height);
-    let acturalTexWidth = potWidth;
-    let acturalTexHeight = potHeight;
-    if (isPVRTC(argv.format)) {
-      acturalTexHeight = acturalTexWidth = Math.max(potWidth, potHeight);
-    }
-    let maxExtrudeAllowed = Math.min(acturalTexWidth - dimensions.width, acturalTexHeight - dimensions.height);
+  let outputTexturePath = getAbsPath(argv.output);
+  let outputTexturePathObject = path.parse(outputTexturePath);
+  let outputTextureName = outputTexturePathObject.name;
+  let outputTextureExt = outputTexturePathObject.ext;
+  let outputDir = path.dirname(outputTexturePath);
+  let outputPVRTexturePath = path.join(outputDir, outputTextureName + '.pvr');
+  console.log('处理文件 ' + inputTexturePath + ' 中 ... ');
 
-    cmd += ' --extrude ';
-    cmd += ' ' + maxExtrudeAllowed + ' ';
-
-    if (maxExtrudeAllowed < extrude) {
-      console.log('警告：为了节省显存，文件 ' + inputTexturePath + ' extrude 缩小到 ' + maxExtrudeAllowed);
-    }
-
-    if (argv.etc1quality) {
-      cmd += ' --etc1-quality ';
-      cmd += ' ' + argv.etc1quality + ' ';
-    }
-    if (argv.etc2quality) {
-      cmd += ' --etc2-quality ';
-      cmd += ' ' + argv.etc2quality + ' ';
-    }
-    if (argv.pvrquality) {
-      cmd += ' --pvr-quality ';
-      cmd += ' ' + argv.pvrquality + ' ';
-    }
-    if (argv.dithertype) {
-      cmd += ' --dither-type ';
-      cmd += ' ' + argv.dithertype + ' ';
-    }
-    child_process.execSync(cmd); 
-    
-    cmd = path.join(__dirname, '../tools/win/PVRTool.exe');
-    cmd += ' ' + outputTexturePath + ' ';
-    cmd += ' ' + path.join(outputDir, path.parse(file).name) + ' ';
-
-    var dataJson = fs.readFileSync(outputDataPath, 'utf8');
-    let frame = JSON.parse(dataJson).textures[0].frames[0].frame;
-
-    cmd += ' ' + frame.x + ' ';
-    cmd += ' ' + frame.y + ' ';
-    cmd += ' ' + frame.w + ' ';
-    cmd += ' ' + frame.h + ' ';
-    child_process.execSync(cmd); 
-    fs.unlinkSync(outputDataPath);
+  if (fs.existsSync(outputTexturePath)) {
+    fs.unlinkSync(outputTexturePath);
   }
+
+  let inputTextureBuffer = fs.readFileSync(inputTexturePath);
+  let type = imageType(inputTextureBuffer);
+  if (type.ext !== 'png' && type.ext !== 'jpg') {
+    console.log('警告：文件 ' + inputTexturePath + ' 文件类型不支持！');
+    return;
+  }
+
+  let cmd = 'TexturePacker';
+  cmd += ' ' + inputTexturePath + ' ';
+  cmd += ' --sheet ';
+  cmd += ' ' + outputPVRTexturePath + ' ';
+  cmd += ' --texture-format pvr3 --trim-mode None';
+  cmd += ' --format phaser';
+  cmd += ' --data ';
+  let outputDataPath = path.join(outputDir, outputTextureName + '.json');
+  cmd += ' ' + outputDataPath + ' ';
+  cmd += ' --size-constraints POT ';
+  cmd += ' --alpha-handling PremultiplyAlpha ';
+  cmd += ' --opt ';
+  cmd += ' ' + argv.format + ' ';
+  //格式为PVR，不是ETC，强制为方的
+  if (isPVRTC(argv.format)) {
+    cmd += ' --force-squared ';
+  }
+  let extrude: number = argv.extrude ? argv.extrude : 1;
+  let dimensions = sizeOf(inputTextureBuffer);
+  let potWidth = nextPOT(dimensions.width);
+  let potHeight = nextPOT(dimensions.height);
+  let acturalTexWidth = potWidth;
+  let acturalTexHeight = potHeight;
+  if (isPVRTC(argv.format)) {
+    acturalTexHeight = acturalTexWidth = Math.max(potWidth, potHeight);
+  }
+  let maxExtrudeAllowed = Math.min(extrude, acturalTexWidth - dimensions.width, acturalTexHeight - dimensions.height);
+
+  cmd += ' --extrude ';
+  cmd += ' ' + maxExtrudeAllowed + ' ';
+
+  if (maxExtrudeAllowed < extrude) {
+    console.log('警告：为了节省显存，文件 ' + inputTexturePath + ' extrude 缩小到 ' + maxExtrudeAllowed);
+  }
+
+  if (argv.etc1quality) {
+    cmd += ' --etc1-quality ';
+    cmd += ' ' + argv.etc1quality + ' ';
+  }
+  if (argv.etc2quality) {
+    cmd += ' --etc2-quality ';
+    cmd += ' ' + argv.etc2quality + ' ';
+  }
+  if (argv.pvrquality) {
+    cmd += ' --pvr-quality ';
+    cmd += ' ' + argv.pvrquality + ' ';
+  }
+  if (argv.dithertype) {
+    cmd += ' --dither-type ';
+    cmd += ' ' + argv.dithertype + ' ';
+  }
+  child_process.execSync(cmd);
+
+  cmd = path.join(__dirname, '../tools/win/PVRTool.exe');
+  cmd += ' ' + outputPVRTexturePath + ' ';
+  cmd += ' ' + path.join(outputDir, outputTextureName) + ' ';
+
+  var dataJson = fs.readFileSync(outputDataPath, 'utf8');
+  let frame = JSON.parse(dataJson).textures[0].frames[0].frame;
+
+  cmd += ' ' + frame.x + ' ';
+  cmd += ' ' + frame.y + ' ';
+  cmd += ' ' + frame.w + ' ';
+  cmd += ' ' + frame.h + ' ';
+  child_process.execSync(cmd);
+  fs.unlinkSync(outputDataPath);
+  fs.renameSync(outputPVRTexturePath, outputTexturePath);
 }
 function isPVRTC(format: string): boolean {
   return (format === 'PVRTCI_2BPP_RGB' ||
