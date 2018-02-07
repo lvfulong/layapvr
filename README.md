@@ -4,5 +4,5 @@
 npm install -g layapvr
 ## 2.简单实例
 ``` 
- $ layapvr texturepacker --i F:\codegit\conch5new\ScriptTest\images --o C:\Users\lvfulong\Desktop\CNM\images --f PVRTCI_4BPP_RGBA
+ $ layapvr texturepacker --i F:\images\0.png --o E:\images\0.etc --f ETC1_RGB
  ``` 
