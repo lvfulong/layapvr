@@ -109,7 +109,7 @@ exports.handler = function (argv) {
         let outputDataPath = path.join(outputDir, outputTextureName + '.json');
         cmd += ' ' + outputDataPath + ' ';
         cmd += ' --size-constraints POT ';
-        cmd += ' --alpha-handling PremultiplyAlpha ';
+        cmd += ' --alpha-handling KeepTransparentPixels ';
         cmd += ' --opt ';
         cmd += ' ' + argv.format + ' ';
         if (isPVRTC(argv.format)) {
