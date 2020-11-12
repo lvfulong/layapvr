@@ -115,7 +115,7 @@ exports.handler = async function (argv) {
   let outputDataPath = path.join(outputDir, outputTextureName + '.json');
   cmd += ' ' + outputDataPath + ' ';
   cmd += ' --size-constraints POT ';
-  cmd += ' --alpha-handling KeepTransparentPixels ';
+  cmd += ' --alpha-handling PremultiplyAlpha ';
   cmd += ' --opt ';
   cmd += ' ' + argv.format + ' ';
   //格式为PVR，不是ETC，强制为方的
