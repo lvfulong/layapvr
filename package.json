@@ -25,7 +25,7 @@
   "dependencies": {
     "image-size": "^0.6.2",
     "image-type": "^3.0.0",
-    "yargs": "^11.0.0"
+    "yargs": "^17.7.1"
   },
   "devDependencies": {}
 }
